@@ -1,9 +1,10 @@
 from pretrain_gpt2 import initialize_distributed
 from utils import load_checkpoint
-from fp16 import FP16_Module
 from model import GPT2Model
-from model import DistributedDataParallel as DDP
 import os
+from transformers import GPT2Config
+from transformers import GPT2LMHeadModel, GPT2Tokenizer
+
 
 model_dir = "/home/Public/Megatron-LM/checkpoints/gpt2_87.75m_hm8g"
 hf_model_dir = os.path.join(model_dir, "hf")
@@ -29,7 +30,7 @@ class c_args(object):
 def get_model():
     """Build the model."""
 
-    print_rank_0('building GPT2 model ...')
+    print('building GPT2 model ...\n')
     model = GPT2Model(num_layers=12,
                       vocab_size=32128,
                       hidden_size=768,
@@ -41,21 +42,6 @@ def get_model():
                       checkpoint_activations=True,
                       checkpoint_num_layers=1,
                       parallel_output=False)
-
-    if mpu.get_data_parallel_rank() == 0:
-        print(' > number of parameters on model parallel rank {}: {}'.format(
-            mpu.get_model_parallel_rank(),
-            sum([p.nelement() for p in model.parameters()])), flush=True)
-
-    # GPU allocation.
-    model.cuda(torch.cuda.current_device())
-
-    # Fp16 conversion.
-    if args.fp16:
-        model = FP16_Module(model)
-
-    # Wrap model for distributed training.
-    model = DDP(model)
 
     return model
 
@@ -69,9 +55,6 @@ model = get_model()
 _ = load_checkpoint(
     model, None, None, args)
 
-from transformers import GPT2Config
-
-from transformers import GPT2LMHeadModel, GPT2Tokenizer
 
 config_class = GPT2Config(
         vocab_size_or_config_json_file=32128,
