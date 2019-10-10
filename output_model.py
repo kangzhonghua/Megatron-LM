@@ -1,25 +1,15 @@
-import os
-import random
-import numpy as np
-import torch
-import torch.nn.functional as F
-import argparse
-import time
-from arguments import get_args
-from utils import Timers
 from pretrain_gpt2 import initialize_distributed
-from pretrain_gpt2 import set_random_seed
-from pretrain_gpt2 import get_train_val_test_data
-from pretrain_gpt2 import get_masks_and_position_ids
 from utils import load_checkpoint
-from data_utils import make_tokenizer
-from configure_data import configure_data
-import mpu
-
 from fp16 import FP16_Module
 from model import GPT2Model
 from model import DistributedDataParallel as DDP
-from utils import print_rank_0
+import os
+
+model_dir = "/home/Public/Megatron-LM/checkpoints/gpt2_87.75m_hm8g"
+hf_model_dir = os.path.join(model_dir, "hf")
+
+if not os.path.exists(hf_model_dir):
+    os.makedirs(hf_model_dir)
 
 
 class c_args(object):
@@ -79,4 +69,42 @@ model = get_model()
 _ = load_checkpoint(
     model, None, None, args)
 
-print(model)
+from transformers import GPT2Config
+
+from transformers import GPT2LMHeadModel, GPT2Tokenizer
+
+config_class = GPT2Config(
+        vocab_size_or_config_json_file=32128,
+        n_positions=768,
+        n_ctx=768,
+        n_embd=768,
+        n_layer=12,
+        n_head=12,
+        resid_pdrop=0.1,
+        embd_pdrop=0.1,
+        attn_pdrop=0.1,
+        layer_norm_epsilon=1e-5,
+        initializer_range=0.02,
+
+        num_labels=1,
+        summary_type='cls_index',
+        summary_use_proj=True,
+        summary_activation=None,
+        summary_proj_to_labels=True,
+        summary_first_dropout=0.1,
+)
+
+print(config_class)
+
+config_class.save_pretrained(hf_model_dir)
+
+from utils import *
+gpt2model = GPT2LMHeadModel(config_class)
+
+print(gpt2model)
+
+move_weights(model,gpt2model, dst2src=True)
+
+gpt2model.save_pretrained(hf_model_dir)
+
+print("end.")
