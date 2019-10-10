@@ -4,7 +4,7 @@ from model import GPT2Model
 import os
 from transformers import GPT2Config
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
-
+from utils import *
 
 model_dir = "/home/Public/Megatron-LM/checkpoints/gpt2_87.75m_hm8g"
 hf_model_dir = os.path.join(model_dir, "hf")
@@ -27,34 +27,26 @@ class c_args(object):
         self.fp16 = True
 
 
-def get_model():
-    """Build the model."""
-
-    print('building GPT2 model ...\n')
-    model = GPT2Model(num_layers=12,
-                      vocab_size=32128,
-                      hidden_size=768,
-                      num_attention_heads=12,
-                      embedding_dropout_prob=0.1,
-                      attention_dropout_prob=0.1,
-                      output_dropout_prob=0.1,
-                      max_sequence_length=768,
-                      checkpoint_activations=True,
-                      checkpoint_num_layers=1,
-                      parallel_output=False)
-
-    return model
-
-
 args = c_args()
 
 initialize_distributed(args)
 
-model = get_model()
+print('building GPT2 model ...\n')
+model = GPT2Model(num_layers=12,
+                  vocab_size=32128,
+                  hidden_size=768,
+                  num_attention_heads=12,
+                  embedding_dropout_prob=0.1,
+                  attention_dropout_prob=0.1,
+                  output_dropout_prob=0.1,
+                  max_sequence_length=768,
+                  checkpoint_activations=True,
+                  checkpoint_num_layers=1,
+                  parallel_output=False)
 
-_ = load_checkpoint(
-    model, None, None, args)
+load_checkpoint( model, None, None, args)
 
+#print(model)
 
 config_class = GPT2Config(
         vocab_size_or_config_json_file=32128,
@@ -81,10 +73,10 @@ print(config_class)
 
 config_class.save_pretrained(hf_model_dir)
 
-from utils import *
+
 gpt2model = GPT2LMHeadModel(config_class)
 
-print(gpt2model)
+#print(gpt2model)
 
 move_weights(model,gpt2model, dst2src=True)
 
