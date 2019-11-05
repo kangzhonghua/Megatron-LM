@@ -459,10 +459,10 @@ class GPT2Dataset(data.Dataset):
                  max_seq_len=1024,
                  num_samples=None,
                  weighted=True,
-                 sample_across_doc=True,
-                 random_across_doc_sampling=True,
-                 bias_for_single_doc=False,
-                 sentence_start=False, **kwargs):
+                 sample_across_doc=False,#True,
+                 random_across_doc_sampling=False,#True,
+                 bias_for_single_doc=True,
+                 sentence_start=True, **kwargs):#sentence_start=True,
         self.ds = ds
         self.ds_len = len(self.ds)
         self.num_samples = num_samples
@@ -476,6 +476,7 @@ class GPT2Dataset(data.Dataset):
         self.random_across_doc_sampling = random_across_doc_sampling
         self.bias_for_single_doc = bias_for_single_doc
         self.sentence_start = sentence_start
+        #self.debug_file = open("datasets_output.txt", "w", encoding='utf8')
         self.init_weighting()
 
     def init_weighting(self):
@@ -541,6 +542,9 @@ class GPT2Dataset(data.Dataset):
             tokens = tokens[:(self.max_seq_len+1)]
 
         tokens = self.pad_seq(tokens)
+        #text = self.tokenizer.DecodeIds(tokens)
+        #print(f"===>{text}")
+        #self.debug_file.write(f"===>{text}\n")
         return {'text': np.array(tokens),}
 
     def getidx(self, data_idx):
