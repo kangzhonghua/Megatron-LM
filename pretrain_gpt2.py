@@ -549,7 +549,7 @@ def get_train_val_test_data(args):
                 args)
             num_tokens = tokenizer.num_tokens
             eod_token = tokenizer.get_command('eos').Id
-            assert eod_token == tokenizer.get_command('pad').Id
+            #assert eod_token == tokenizer.get_command('pad').Id
         before = num_tokens
         after = before
         multiple = args.make_vocab_size_divisible_by * \
