@@ -38,6 +38,7 @@ def make_tokenizer(tokenizer_type, corpus, model_path=None, vocab_size=None, mod
     if tokenizer_class is BertWordPieceTokenizer:
         return BertWordPieceTokenizer(model_type, **kwargs)
     elif tokenizer_class is GPT2BPETokenizer:
+        kwargs["tokenizer_model_path"] = model_path
         return GPT2BPETokenizer(**kwargs)
     text_tokenizer =  tokenizer_class(corpus=corpus, vocab_size=vocab_size, model_path=model_path, model_type=model_type,
                                       pad_token=pad_token, character_coverage=character_coverage)
@@ -797,7 +798,7 @@ class BertWordPieceTokenizer(Tokenizer):
 
 class GPT2BPETokenizer(Tokenizer):
     def __init__(self, cache_dir=None, **kwargs):
-        self.text_tokenizer = GPT2Tokenizer.from_pretrained('gpt2',
+        self.text_tokenizer = GPT2Tokenizer.from_pretrained(kwargs["tokenizer_model_path"],#'gpt2',
                                                             cache_dir=cache_dir)
 
         #disable max len warnings by increasing max len
