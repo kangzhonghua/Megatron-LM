@@ -571,6 +571,12 @@ class GPT2Dataset(data.Dataset):
             return True
         if '!' in tok:
             return True
+        if '。' in tok:
+            return True
+        if '？' in tok:
+            return True
+        if '！' in tok:
+            return True
         return False
 
 class bert_sentencepair_dataset(data.Dataset):
